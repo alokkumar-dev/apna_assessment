@@ -27,7 +27,7 @@ function AppContent() {
     <>
       {user && <Navbar />}
       <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" /> : <LoginPage />} />
+        <Route path="/" element={user ? <Navigate to="/profile" /> : <LoginPage />} />
         {/* <Route path="/register" element={<RegisterPage />} /> */}
         <Route path="/login" element={<LoginPage />} />
         <Route
