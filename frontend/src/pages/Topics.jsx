@@ -7,7 +7,7 @@ function Topics() {
     const { user } = useContext(AuthContext);
     const [chapters, setChapters] = useState([]);
     const [openChapter, setOpenChapter] = useState(null);
-    const [loadingProblems, setLoadingProblems] = useState(false);
+    const [loadingProblems, setLoadingProblems] = useState(new Set());
     const [loadingChapters, setLoadingChapters] = useState(false);
 
     useEffect(() => {
@@ -15,7 +15,9 @@ function Topics() {
     }, []);
 
     const fetchChapters = async () => {
-        setLoadingChapters(true);
+        if(chapters.length === 0){
+            setLoadingChapters(true);
+        }
         const res = await API.get("/chapters");
         setChapters(res.data);
         setLoadingChapters(false);
