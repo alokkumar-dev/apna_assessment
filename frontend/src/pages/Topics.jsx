@@ -2,32 +2,45 @@ import React from 'react'
 import { useEffect, useState, useContext } from "react";
 import API from "../api/api";
 import { AuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
 
 function Topics() {
-    const { user, logout } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [chapters, setChapters] = useState([]);
     const [openChapter, setOpenChapter] = useState(null);
-    console.log("chapters====", chapters);
+    const [loadingProblems, setLoadingProblems] = useState(false);
+    const [loadingChapters, setLoadingChapters] = useState(false);
+
     useEffect(() => {
         fetchChapters();
     }, []);
 
     const fetchChapters = async () => {
+        setLoadingChapters(true);
         const res = await API.get("/chapters");
         setChapters(res.data);
+        setLoadingChapters(false);
     };
 
     const handleCheckbox = async (problemId, problem) => {
-        await API.put("/problems/completed", { userId: user?._id, problemId, isCompleted: !problem?.isCompleted });
-        fetchChapters();
+        setLoadingProblems(prev => new Set(prev).add(problemId));
+        
+        try {
+            await API.put("/problems/completed", { userId: user?._id, problemId, isCompleted: !problem?.isCompleted });
+            fetchChapters();
+        } catch (error) {
+            console.error("Error updating problem status:", error);
+        } finally {
+            setLoadingProblems(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(problemId);
+                return newSet;
+            });
+        }
     };
 
     const toggleChapter = (chapterId) => {
         setOpenChapter(openChapter === chapterId ? null : chapterId);
     };
-
-    console.log("user====", user);
 
     return (
         <div className="min-h-screen bg-gray-100 mt-12">
@@ -35,7 +48,7 @@ function Topics() {
                 <h1 className="text-4xl font-extrabold text-center text-gray-800 mb-4">Topics</h1>
                 <p className="text-center text-gray-600 mb-8">Explore these exciting topics!</p>
 
-                {chapters.map((chapter) => (
+                { chapters && chapters.length > 0 && !loadingChapters ? chapters.map((chapter) => (
                     <div key={chapter._id} className="bg-white rounded-lg shadow-xl mb-6 overflow-hidden transform transition-all duration-300 hover:scale-[1.02]">
                         <div
                             className="flex justify-between items-center p-5 cursor-pointer bg-gradient-to-r from-teal-500 to-teal-600 text-white font-extrabold text-lg transition-colors duration-300 hover:from-teal-600 hover:to-teal-700"
@@ -92,12 +105,20 @@ function Topics() {
                                             {chapter.problems.map((problem) => (
                                                 <tr key={problem._id} className="border-b border-gray-200 hover:bg-teal-50">
                                                     <td className="py-3 px-6 text-left whitespace-nowrap flex items-center">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={problem?.isCompleted || false}
-                                                            onChange={() => handleCheckbox(problem._id, problem)}
-                                                            className="mr-3 h-5 w-5 text-teal-600 rounded focus:ring-teal-500 hover:cursor-pointer"
-                                                        />
+                                                        <div className="relative mr-3">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={problem?.isCompleted || false}
+                                                                onChange={() => handleCheckbox(problem._id, problem)}
+                                                                disabled={loadingProblems.has(problem._id)}
+                                                                className="h-5 w-5 text-teal-600 rounded focus:ring-teal-500 hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            />
+                                                            {loadingProblems.has(problem._id) && (
+                                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-teal-600 border-t-transparent"></div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         <span className="font-medium">{problem.title}</span>
                                                     </td>
                                                     <td className="py-3 px-6 text-left">
@@ -123,7 +144,15 @@ function Topics() {
                             </div>
                         )}
                     </div>
-                ))}
+                ) ) : loadingChapters ? (
+                    <div className="flex justify-center items-center">
+                        <h1 className="text-2xl font-bold text-gray-700">Loading...</h1>
+                    </div>
+                ) : (
+                    <div className="flex justify-center items-center">
+                        <h1 className="text-2xl font-bold text-gray-700">No chapters found</h1>
+                    </div>
+                )}
             </div>
         </div>
     );

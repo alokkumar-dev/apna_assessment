@@ -45,7 +45,7 @@ function LoginPage() {
         {
           failedMsg && <h3 className="text-red-500 mt-3">{failedMsg}</h3>
         }
-        <p className="text-center text-gray-700 mt-4">Don't have an account? <Link to="/register" className="text-teal-600 hover:underline">Register</Link></p>
+        {/* <p className="text-center text-gray-700 mt-4">Don't have an account? <Link to="/register" className="text-teal-600 hover:underline">Register</Link></p> */}
       </form>
     </div>
   );

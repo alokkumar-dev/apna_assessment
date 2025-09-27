@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://apna-assessment.onrender.com/api",
+  baseURL: import.meta.env.VITE_BASE_URL,
 });
 
 // Add token automatically if exists
