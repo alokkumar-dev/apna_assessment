@@ -9,6 +9,7 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const { login } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [failedMsg, setFailedMsg] = useState()
 
@@ -23,13 +24,16 @@ function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     if (!validateForm()) return;
     try {
       const res = await API.post("/auth/login", { email, password });
       login(res.data);
       navigate("/profile");
+      setLoading(false);
     } catch (err) {
       setFailedMsg(err.response.data.message)
+      setLoading(false);
     }
   };
 
@@ -41,11 +45,11 @@ function LoginPage() {
         {errors.email && <p className="text-red-500 text-xs italic -mt-3 mb-2">{errors.email}</p>}
         <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className="w-full mb-4 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-teal-500 focus:border-transparent"/>
         {errors.password && <p className="text-red-500 text-xs italic -mt-3 mb-2">{errors.password}</p>}
-        <button type="submit" className="w-full bg-teal-600 text-white p-3 rounded-md hover:bg-teal-700 transition-colors duration-300 cursor-pointer">Login</button>
+        <button type="submit" className="w-full bg-teal-600 text-white p-3 rounded-md hover:bg-teal-700 transition-colors duration-300 cursor-pointer">{loading ? "Loading..." : "Login"}</button>
         {
           failedMsg && <h3 className="text-red-500 mt-3">{failedMsg}</h3>
         }
-        {/* <p className="text-center text-gray-700 mt-4">Don't have an account? <Link to="/register" className="text-teal-600 hover:underline">Register</Link></p> */}
+        <p className="text-center text-gray-700 mt-4">Demo Credentials: <br />User: <b>alok@gmail.com</b>, Pwd: <b>123456</b></p>
       </form>
     </div>
   );
